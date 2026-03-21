@@ -60,4 +60,6 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.database)
     implementation("com.google.code.gson:gson:2.13.2")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("com.google.firebase:firebase-auth")
 }
