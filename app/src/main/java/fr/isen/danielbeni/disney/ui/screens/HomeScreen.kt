@@ -3,12 +3,13 @@ package fr.isen.danielbeni.disney.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -22,18 +23,39 @@ import fr.isen.danielbeni.disney.Film
 import fr.isen.danielbeni.disney.Franchise
 import fr.isen.danielbeni.disney.SousSaga
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        val categories = remember { mutableStateListOf<Categorie>() }
-        val expandableCategories = remember { mutableStateListOf<Categorie>() }
+    val categories = remember { mutableStateListOf<Categorie>() }
+    val expandableCategories = remember { mutableStateListOf<Categorie>() }
 
-        LaunchedEffect(Unit) {
-            DataBaseHelper().getCategories {
-                categories.addAll(it)
-            }
+    LaunchedEffect(Unit) {
+        // Chargement des données Firebase
+        DataBaseHelper().getCategories {
+            categories.clear() // Nettoyage pour éviter les doublons
+            categories.addAll(it)
         }
+    }
 
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        // Ajout de la barre supérieure avec le titre et l'action
+        topBar = {
+            TopAppBar(
+                title = { Text("Disney App") },
+                actions = {
+                    // Icône de profil pour naviguer vers ProfileScreen
+                    IconButton(onClick = { navController.navigate("profile") }) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Voir le profil"
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        // Affichage de la liste des catégories
         LazyColumn(modifier = Modifier.padding(innerPadding)) {
             items(categories) { categorie ->
                 Column() {
@@ -47,7 +69,8 @@ fun HomeScreen(navController: NavController) {
                         Text("${categorie.categorie}")
                     }
                     if(expandableCategories.firstOrNull { it.categorie == categorie.categorie } != null) {
-                        franchises(categorie.franchises)
+                        // CORRECTION ICI : Ajout de navController
+                        franchises(categorie.franchises, navController)
                     }
                 }
             }
@@ -55,9 +78,8 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
-
 @Composable
-fun franchises(franchises: List<Franchise>) {
+fun franchises(franchises: List<Franchise>, navController: NavController) {
     val expandableFranchises = remember { mutableStateListOf<Franchise>() }
     Column(Modifier.padding(start = 16.dp)) {
         franchises.forEach { franchise ->
@@ -70,14 +92,15 @@ fun franchises(franchises: List<Franchise>) {
             })
             if(expandableFranchises.firstOrNull { it.nom == franchise.nom } != null) {
                 val saga = franchise.sousSagas
-                saga?.let { saga(it) } ?: run { films(franchise.tousLesFilms()) }
+                // On passe le navController à la suite
+                saga?.let { saga(it, navController) } ?: run { films(franchise.tousLesFilms(), navController) }
             }
         }
     }
 }
 
 @Composable
-fun saga(sousSaga: List<SousSaga>) {
+fun saga(sousSaga: List<SousSaga>, navController: NavController) {
     val expandableSaga = remember { mutableStateListOf<SousSaga>() }
     Column(Modifier.padding(start = 16.dp)) {
         sousSaga.forEach { saga ->
@@ -89,17 +112,28 @@ fun saga(sousSaga: List<SousSaga>) {
                 }
             })
             if(expandableSaga.firstOrNull { it.nom == saga.nom } != null) {
-                films(saga.films)
+                // On passe le navController aux films
+                films(saga.films, navController)
             }
         }
     }
 }
 
 @Composable
-fun films(films: List<Film>) {
+fun films(films: List<Film>, navController: NavController) {
     Column(Modifier.padding(start = 16.dp)) {
         films.forEach { film ->
-            Text(film.titre)
+            Text(
+                text = film.titre,
+                color = MaterialTheme.colorScheme.primary, // On le met en couleur pour montrer que c'est cliquable !
+                modifier = Modifier
+                    .fillMaxWidth() // Prend toute la largeur pour faciliter le clic avec le doigt
+                    .padding(vertical = 8.dp)
+                    .clickable {
+                        // LA MAGIE EST ICI : On navigue vers l'écran de détail !
+                        navController.navigate("film_detail/${film.titre}")
+                    }
+            )
         }
     }
 }

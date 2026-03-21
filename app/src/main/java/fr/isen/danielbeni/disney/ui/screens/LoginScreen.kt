@@ -14,16 +14,16 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    // variables pour stocker ce que l'user tape
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // outils nécessaires pour afficher des messages (Toast) et appeler Firebase
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -31,61 +31,58 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // champ Email
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Champ Mot de passe
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Mot de passe") },
             visualTransformation = PasswordVisualTransformation(),
-            singleLine = true
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Bouton de Connexion
-        Button(onClick = {
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                // Appel à Firebase pour SE CONNECTER
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            Toast.makeText(context, "Connexion réussie", Toast.LENGTH_SHORT).show()
-                            // Navigation vers l'accueil et suppression de l'écran de login de l'historique
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+        Button(
+            onClick = {
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, "Connexion réussie", Toast.LENGTH_SHORT).show()
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(context, "Erreur : ${task.exception?.message}", Toast.LENGTH_LONG).show()
                             }
-                        } else {
-                            Toast.makeText(context, "Erreur : ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
-                    }
-            } else {
-                Toast.makeText(context, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show()
-            }
-        }) {
+                } else {
+                    Toast.makeText(context, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Se connecter")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // bouton d'Inscription
         TextButton(onClick = {
             if (email.isNotEmpty() && password.isNotEmpty()) {
-                // appel à Firebase pour CRÉER UN COMPTE
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(context, "Compte créé avec succès !", Toast.LENGTH_SHORT).show()
-                            // Navigation automatique vers l'accueil
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -98,6 +95,24 @@ fun LoginScreen(navController: NavController) {
             }
         }) {
             Text("Créer un compte")
+        }
+
+        // --- nOUVEAU : Bouton Mot de passe oublié ---
+        TextButton(onClick = {
+            if (email.isNotEmpty()) {
+                auth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            Toast.makeText(context, "Email de réinitialisation envoyé !", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "Erreur : ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+            } else {
+                Toast.makeText(context, "Veuillez saisir votre email dans le champ d'abord", Toast.LENGTH_LONG).show()
+            }
+        }) {
+            Text("Mot de passe oublié ?", color = MaterialTheme.colorScheme.secondary)
         }
     }
 }

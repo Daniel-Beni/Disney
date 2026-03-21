@@ -15,6 +15,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import fr.isen.danielbeni.disney.ui.screens.FilmDetailScreen // <-- L'import important !
 import fr.isen.danielbeni.disney.ui.screens.HomeScreen
 import fr.isen.danielbeni.disney.ui.screens.LoginScreen
 import fr.isen.danielbeni.disney.ui.screens.ProfileScreen
@@ -27,11 +28,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DisneyTheme {
-                // initialisation du contrôleur de navigation
                 val navController = rememberNavController()
 
-                // le navHost est le conteneur qui change d'écran.
-                // startDestination indique l'écran qui s'affiche au lancement de l'app.
                 NavHost(navController = navController, startDestination = "login") {
 
                     composable("login") {
@@ -45,13 +43,18 @@ class MainActivity : ComponentActivity() {
                     composable("profile") {
                         ProfileScreen(navController)
                     }
+
+                    // --- LA MAGIE EST ICI : LA ROUTE MANQUANTE ---
+                    composable("film_detail/{filmTitle}") { backStackEntry ->
+                        val filmTitle = backStackEntry.arguments?.getString("filmTitle") ?: ""
+                        FilmDetailScreen(navController, filmTitle)
+                    }
                 }
             }
         }
     }
 }
 
-// on laisse DataBaseHelper ici
 class DataBaseHelper {
     fun getCategories(handler: (List<Categorie>) -> Unit) {
         // RAPPEL : Mets bien ton URL Firebase ici !
