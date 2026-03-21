@@ -69,7 +69,7 @@ fun HomeScreen(navController: NavController) {
                         Text("${categorie.categorie}")
                     }
                     if(expandableCategories.firstOrNull { it.categorie == categorie.categorie } != null) {
-                        // CORRECTION ICI : Ajout de navController
+                        // On passe le navController
                         franchises(categorie.franchises, navController)
                     }
                 }
@@ -123,14 +123,14 @@ fun saga(sousSaga: List<SousSaga>, navController: NavController) {
 fun films(films: List<Film>, navController: NavController) {
     Column(Modifier.padding(start = 16.dp)) {
         films.forEach { film ->
+            // On affiche le titre ET la date
             Text(
-                text = film.titre,
-                color = MaterialTheme.colorScheme.primary, // On le met en couleur pour montrer que c'est cliquable !
+                text = "${film.titre} (${film.annee})",
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .fillMaxWidth() // Prend toute la largeur pour faciliter le clic avec le doigt
+                    .fillMaxWidth()
                     .padding(vertical = 8.dp)
                     .clickable {
-                        // LA MAGIE EST ICI : On navigue vers l'écran de détail !
                         navController.navigate("film_detail/${film.titre}")
                     }
             )

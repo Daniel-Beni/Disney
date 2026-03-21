@@ -1,5 +1,6 @@
 package fr.isen.danielbeni.disney.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -124,7 +125,11 @@ fun ProfileScreen(navController: NavController) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 4.dp)
+                            // LA MAGIE EST LÀ : On rend la carte cliquable pour aller gérer le film !
+                            .clickable {
+                                navController.navigate("film_detail/${film.title}")
+                            },
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
