@@ -20,6 +20,7 @@ import fr.isen.danielbeni.disney.ui.screens.HomeScreen
 import fr.isen.danielbeni.disney.ui.screens.LoginScreen
 import fr.isen.danielbeni.disney.ui.screens.ProfileScreen
 import fr.isen.danielbeni.disney.ui.theme.DisneyTheme
+import fr.isen.danielbeni.disney.ui.screens.SplashScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +31,11 @@ class MainActivity : ComponentActivity() {
             DisneyTheme {
                 val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = "splash") {
+
+                    composable("splash") {
+                        SplashScreen(navController)
+                    }
 
                     composable("login") {
                         LoginScreen(navController)
