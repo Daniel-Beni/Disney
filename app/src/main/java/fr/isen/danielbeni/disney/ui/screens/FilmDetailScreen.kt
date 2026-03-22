@@ -1,24 +1,29 @@
 package fr.isen.danielbeni.disney.ui.screens
 
-import android.widget.Toast // NOUVEL IMPORT
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext // NOUVEL IMPORT
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage // IMPORT DE COIL
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import fr.isen.danielbeni.disney.TmdbHelper // IMPORT DE TON FICHIER TMDB
 
 data class UserFilmStatus(val email: String, val ownDvd: Boolean, val wantToGetRidOf: Boolean)
 
@@ -28,7 +33,7 @@ fun FilmDetailScreen(navController: NavController, filmTitle: String) {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val database = FirebaseDatabase.getInstance("https://disneyapp-isen-default-rtdb.europe-west1.firebasedatabase.app").reference
-    val context = LocalContext.current // Récupération du contexte pour le Toast
+    val context = LocalContext.current
 
     var isWatched by remember { mutableStateOf(false) }
     var wantToWatch by remember { mutableStateOf(false) }
@@ -36,7 +41,13 @@ fun FilmDetailScreen(navController: NavController, filmTitle: String) {
     var wantToGetRidOf by remember { mutableStateOf(false) }
     val otherUsersStatus = remember { mutableStateListOf<UserFilmStatus>() }
 
+    // --- NOUVEAU : État pour stocker l'URL de l'affiche ---
+    var posterUrl by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(filmTitle) {
+        // --- NOUVEAU : Appel à ton API pour récupérer l'image ---
+        posterUrl = TmdbHelper.getPosterUrl(filmTitle)
+
         currentUser?.let { user ->
             database.child("users").child(user.uid).child("films").child(filmTitle).get()
                 .addOnSuccessListener { snapshot ->
@@ -94,10 +105,23 @@ fun FilmDetailScreen(navController: NavController, filmTitle: String) {
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize()) {
 
+            // --- NOUVEAU : Affichage conditionnel de l'affiche ---
+            if (posterUrl != null) {
+                AsyncImage(
+                    model = posterUrl,
+                    contentDescription = "Affiche de $filmTitle",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Text("Mon statut :", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Ajout du Toast dans chaque onCheckedChange
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isWatched, onCheckedChange = {
                     isWatched = it
